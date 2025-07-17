@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agent Dashboard - ResolveHub 360</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    body { display: flex; flex-direction: column; }
+    .container { display: flex; flex: 1; min-height: 0; }
+
+    .sidebar {
+      width: 250px;
+      background-color: #1e293b;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem 1rem;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+    }
+
+    .sidebar h2 {
+      margin-bottom: 2rem;
+      text-align: center;
+      font-size: 1.5rem;
+      color: #22c55e;
+    }
+
+    .sidebar a {
+      color: white;
+      padding: 0.75rem 1rem;
+      display: block;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      transition: background 0.3s;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .sidebar a:hover, .sidebar a.active {
+      background-color: #3b82f6;
+    }
+
+    main {
+      margin-left: 250px;
+      padding: 2rem;
+      flex: 1;
+    }
+
+    .btn-primary {
+      background-color: #2563eb;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      background-color: #1d4ed8;
+    }
+
+    .dashboard-header h1 {
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .ticket-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-left: 6px solid #2563eb;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    }
+
+    .profile-section {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .page-title {
+      text-align: center;
+      font-size: 1.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .profile-card {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    textarea, select {
+      width: 100%;
+      margin-top: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h2>ResolveHub 360</h2>
+      <a id="dashboardTab" class="active">Dashboard</a>
+      <a id="profileTab">Profile</a>
+      <a onclick="logout()">Logout</a>
+    </aside>
+
+    <main>
+      <!-- Dashboard Section -->
+      <section id="dashboardSection">
+        <div class="dashboard-header">
+          <h1 id="welcomeText">Welcome, Agent</h1>
+          <p>Manage assigned support tickets and respond efficiently.</p>
+        </div>
+        <div id="ticketsList"></div>
+      </section>
+
+      <!-- Profile Section -->
+      <section id="profileSection" style="display: none;">
+        <div class="profile-section">
+          <h1 class="page-title">My Profile</h1>
+          <div class="profile-card">
+            <div>
+              <p><strong>Name:</strong> <span id="userName"></span></p>
+              <div id="editNameForm" style="display: none; margin-top: 0.5rem;">
+                <input type="text" id="editNameInput" placeholder="Enter new name" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 6px;" />
+              </div>
+            </div>
+            <p><strong>Email:</strong> <span id="userEmail"></span></p>
+            <p><strong>Role:</strong> <span id="userRole"></span></p>
+            <div style="display: flex; gap: 1rem;">
+              <button id="editBtn" onclick="enableNameEdit()" class="btn-primary">Edit</button>
+              <button id="saveBtn" onclick="updateName()" class="btn-primary" style="display: none;">Save</button>
+              <button onclick="logout()" class="btn-primary" style="background-color: #ef4444;">Logout</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    const token = localStorage.getItem("token");
+
+    if (user && user.name) {
+      document.getElementById("welcomeText").innerText = `Welcome, ${user.name}!`;
+    }
+
+    // Tab switching
+    document.getElementById("dashboardTab").addEventListener("click", () => {
+      document.getElementById("dashboardSection").style.display = "block";
+      document.getElementById("profileSection").style.display = "none";
+      document.getElementById("dashboardTab").classList.add("active");
+      document.getElementById("profileTab").classList.remove("active");
+      fetchAllTickets();
+    });
+
+    document.getElementById("profileTab").addEventListener("click", () => {
+      document.getElementById("dashboardSection").style.display = "none";
+      document.getElementById("profileSection").style.display = "block";
+      document.getElementById("dashboardTab").classList.remove("active");
+      document.getElementById("profileTab").classList.add("active");
+
+      if (user) {
+        document.getElementById("userName").innerText = user.name || "N/A";
+        document.getElementById("userEmail").innerText = user.email || "N/A";
+        document.getElementById("userRole").innerText = user.role || "N/A";
+        document.getElementById("editNameInput").value = user.name || "";
+      }
+    });
+
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("currentUser");
+      window.location.href = "login.html";
+    }
+
+    function enableNameEdit() {
+      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+      document.getElementById("editNameForm").style.display = "block";
+      document.getElementById("editBtn").style.display = "none";
+      document.getElementById("saveBtn").style.display = "inline-block";
+      document.getElementById("editNameInput").value = currentUser.name || "";
+    }
+
+    async function updateName() {
+      const newName = document.getElementById("editNameInput").value.trim();
+      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+      if (!newName || !currentUser?.email) {
+        alert("Name cannot be empty.");
+        return;
+      }
+
+      try {
+        const res = await axios.put("http://localhost:5000/api/users/update-name", {
+          email: currentUser.email,
+          name: newName
+        }, {
+          headers: {
+            Authorization: "Bearer " + token
+          }
+        });
+
+        const updatedUser = res.data.user;
+        localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+        document.getElementById("userName").innerText = updatedUser.name;
+        document.getElementById("welcomeText").innerText = `Welcome, ${updatedUser.name}!`;
+        document.getElementById("editNameForm").style.display = "none";
+        document.getElementById("editBtn").style.display = "inline-block";
+        document.getElementById("saveBtn").style.display = "none";
+        alert("Profile updated!");
+      } catch (err) {
+        console.error(err);
+        alert("Failed to update name.");
+      }
+    }
+
+    async function fetchAllTickets() {
+      const container = document.getElementById("ticketsList");
+      container.innerHTML = "<p>Loading tickets...</p>";
+
+      try {
+        const res = await axios.get("http://localhost:5000/api/tickets/all", {
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        const tickets = res.data;
+
+        if (tickets.length === 0) {
+          container.innerHTML = "<p>No tickets available.</p>";
+        } else {
+          container.innerHTML = tickets.map(ticket => `
+            <div class="ticket-card" data-id="${ticket._id}">
+              <h3>${ticket.subject}</h3>
+              <p><strong>From:</strong> ${ticket.customerName} (${ticket.customerEmail})</p>
+              <p><strong>Category:</strong> ${ticket.category}</p>
+              <p><strong>Description:</strong> ${ticket.description}</p>
+              <label>Status:</label>
+              <select class="status-select">
+                <option value="open" ${ticket.status === "open" ? "selected" : ""}>Open</option>
+                <option value="in-progress" ${ticket.status === "in-progress" ? "selected" : ""}>In Progress</option>
+                <option value="resolved" ${ticket.status === "resolved" ? "selected" : ""}>Resolved</option>
+              </select>
+              <label>Comment:</label>
+              <textarea class="comment-textarea" rows="2">${ticket.comment || ""}</textarea>
+              <button class="btn-primary" style="margin-top: 0.5rem;" onclick="updateTicket('${ticket._id}')">Update</button>
+            </div>
+          `).join("");
+        }
+      } catch (err) {
+        console.error(err);
+        container.innerHTML = "<p>Failed to load tickets.</p>";
+      }
+    }
+
+    async function updateTicket(ticketId) {
+      const card = document.querySelector(`[data-id="${ticketId}"]`);
+      const status = card.querySelector(".status-select").value;
+      const comment = card.querySelector(".comment-textarea").value;
+
+      try {
+        await axios.put(`http://localhost:5000/api/tickets/${ticketId}`, {
+          status,
+          comment
+        }, {
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        alert("Ticket updated successfully!");
+      } catch (err) {
+        console.error(err);
+        alert("Failed to update ticket.");
+      }
+    }
+
+    // Load tickets on page load
+    fetchAllTickets();
+  </script>
+</body>
+</html>

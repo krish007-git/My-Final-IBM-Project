@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register - ResolveHub 360</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="auth-body">
+  <div class="auth-container">
+    <form class="auth-form" onsubmit="return handleRegister(event)">
+      <h2 class="auth-heading">Register to ResolveHub 360</h2>
+
+      <select id="regRole" required>
+        <option value="">Register As</option>
+        <option value="customer">Customer</option>
+        <option value="agent">Support Agent</option>
+        <option value="admin">Admin</option>
+      </select>
+
+      <input type="text" id="fullName" placeholder="Full Name" required />
+      <input type="email" id="regEmail" placeholder="Email" required />
+      <input type="password" id="regPassword" placeholder="Password" required />
+      <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+
+      <button type="submit" class="btn-primary">Register</button>
+      <p class="auth-switch">Already have an account? <a href="login.html">Login</a></p>
+    
+    </form>
+  </div>
+
+  <script>
+  async function handleRegister(event) {
+    event.preventDefault();
+
+    const role = document.getElementById('regRole').value.trim();
+    const name = document.getElementById('fullName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (!role || !name || !email || !password || !confirmPassword) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/users/register", {
+        role, name, email, password
+      });
+
+      alert("Registration successful! Please login.");
+      window.location.href = "login.html";
+    } catch (err) {
+      console.error(err);
+      const msg = err.response?.data?.message || "Registration failed.";
+      alert(msg);
+    }
+  }
+</script>
+
+</body>
+</html>

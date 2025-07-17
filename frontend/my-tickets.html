@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Tickets - ResolveHub 360</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      background-color: #f9fafb;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #0f172a;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem 1rem;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar h2 {
+      font-size: 1.5rem;
+      color: #22c55e;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .sidebar a {
+      color: #e2e8f0;
+      text-decoration: none;
+      margin: 1rem 0;
+      padding: 0.75rem 1rem;
+      display: block;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+    }
+
+    .sidebar a:hover, .sidebar a.active {
+      background-color: #22c55e;
+      color: #ffffff;
+    }
+
+    main {
+      margin-left: 250px;
+      flex: 1;
+      padding: 2rem;
+    }
+
+    .page-title {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      color: #0f172a;
+    }
+
+    .ticket-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .ticket-card {
+      background-color: #ffffff;
+      border-left: 6px solid #2563eb;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: 0.3s ease;
+    }
+
+    .ticket-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    }
+
+    .ticket-card h3 {
+      margin-bottom: 0.5rem;
+      color: #1f2937;
+    }
+
+    .ticket-card p {
+      margin: 0.25rem 0;
+      color: #475569;
+    }
+
+    .status {
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      display: inline-block;
+    }
+
+    .status.open { background-color: #facc15; color: #000; }
+    .status.in-progress { background-color: #60a5fa; color: white; }
+    .status.resolved { background-color: #22c55e; color: white; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <h2>ResolveHub 360</h2>
+    <a href="customer-dashboard.html">Dashboard</a>
+    <a href="tickets.html">Submit Ticket</a>
+    <a href="my-tickets.html" class="active">My Tickets</a>
+    <a href="profile.html">Profile</a>
+    <a href="index.html" onclick="logout()">Logout</a>
+  </aside>
+
+  <main>
+    <h1 class="page-title">My Support Tickets</h1>
+    <div class="ticket-list" id="ticketsList"></div> <!-- ✅ correct ID -->
+
+  </main>
+
+  
+  <script>
+    async function fetchMyTickets() {
+      const token = localStorage.getItem("token");
+      const user = JSON.parse(localStorage.getItem("currentUser"));
+
+      if (!token || user.role !== "customer") {
+        alert("Unauthorized. Please login as a customer.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      try {
+        const res = await axios.get("http://localhost:5000/api/tickets/my", {
+          headers: {
+            Authorization: "Bearer " + token
+          }
+        });
+
+        const tickets = res.data;
+        const container = document.getElementById("ticketsList");
+
+        if (tickets.length === 0) {
+          container.innerHTML = "<p>No tickets found.</p>";
+        } else {
+          container.innerHTML = tickets.map(t => `
+            <div class="ticket-card">
+              <h3>${t.subject}</h3>
+              <p><strong>Status:</strong> <span class="status ${t.status.replace(' ', '-')}">${t.status}</span></p>
+
+              <p><strong>Category:</strong> ${t.category}</p>
+              <p><strong>Description:</strong> ${t.description}</p>
+              <p><strong>Comment:</strong> ${t.comment || "No comments yet"}</p>
+            </div>
+          `).join("");
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert("Failed to fetch tickets.");
+      }
+    }
+
+    fetchMyTickets();
+  </script>
+</body>
+</html>

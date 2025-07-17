@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Profile - ResolveHub 360</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #0f172a;
+      color: white;
+      padding: 2rem 1rem;
+    }
+
+    .sidebar h2 {
+      color: #22c55e;
+      text-align: center;
+    }
+
+    .sidebar a {
+      color: #e2e8f0;
+      text-decoration: none;
+      display: block;
+      margin: 1rem 0;
+      padding: 0.75rem;
+      border-radius: 8px;
+    }
+
+    .sidebar a:hover, .sidebar a.active {
+      background: #22c55e;
+      color: white;
+    }
+
+    main {
+      margin-left: 250px;
+      flex: 1;
+      background-color: #f8fafc;
+      padding: 2rem;
+    }
+
+    .profile-section {
+      max-width: 600px;
+      background: white;
+      margin: auto;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .profile-section h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .profile-card p {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn-primary {
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+
+    .btn-primary:hover {
+      background-color: #dc2626;
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <h2>ResolveHub 360</h2>
+    <a href="admin-dashboard.html">Dashboard</a>
+    <a href="admin-profile.html" class="active">Profile</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </aside>
+
+  <main>
+    <div class="profile-section">
+      <h1>My Profile</h1>
+      <div class="profile-card">
+  <p><strong>Name:</strong>
+    <span id="userNameDisplay">Loading...</span>
+    <input type="text" id="editNameInput" style="display:none;" />
+  </p>
+  <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
+  <p><strong>Role:</strong> <span id="userRole">Loading...</span></p>
+
+  <button class="btn-primary" id="editBtn" onclick="enableEdit()">Edit</button>
+  <button class="btn-primary" id="saveBtn" style="display:none;" onclick="saveChanges()">Save Changes</button>
+  <button class="btn-primary" onclick="logout()">Logout</button>
+</div>
+    </div>
+  </main>
+
+  <script>
+    
+  const storedUser = localStorage.getItem("currentUser");
+
+  if (!storedUser) {
+    alert("Unauthorized.");
+    window.location.href = "login.html";
+  }
+
+  const user = JSON.parse(storedUser);
+
+  if (!user || user.role !== "admin") {
+    alert("Access Denied.");
+    window.location.href = "login.html";
+  }
+
+  document.getElementById("userNameDisplay").innerText = user.name || "N/A";
+  document.getElementById("userEmail").innerText = user.email || "N/A";
+  document.getElementById("userRole").innerText = user.role || "N/A";
+
+  function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("currentUser");
+    window.location.href = "login.html";
+  }
+
+  
+function enableEdit() {
+  document.getElementById("editNameInput").style.display = "inline-block";
+  document.getElementById("editNameInput").value = user.name;
+  document.getElementById("userNameDisplay").style.display = "none";
+  document.getElementById("editBtn").style.display = "none";
+  document.getElementById("saveBtn").style.display = "inline-block";
+}
+
+async function saveChanges() {
+  const newName = document.getElementById("editNameInput").value;
+
+  try {
+    const res = await fetch("http://localhost:5000/api/admin/update-profile", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+      body: JSON.stringify({ name: newName }),
+    });
+
+    if (!res.ok) throw new Error("Update failed");
+    const updatedUser = await res.json();
+
+    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+    document.getElementById("userNameDisplay").innerText = updatedUser.name;
+    document.getElementById("editNameInput").style.display = "none";
+    document.getElementById("userNameDisplay").style.display = "inline";
+    document.getElementById("editBtn").style.display = "inline-block";
+    document.getElementById("saveBtn").style.display = "none";
+
+    alert("Profile updated!");
+  } catch (err) {
+    alert("Failed to update name");
+    console.error(err);
+  }
+}
+
+</script>
+</body>
+</html>

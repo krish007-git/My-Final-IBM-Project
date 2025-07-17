@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agent Profile - ResolveHub 360</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      margin-left: 250px;
+      padding: 2rem;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #0f172a;
+      color: white;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      padding: 2rem 1rem;
+    }
+
+    .sidebar h2 {
+      font-size: 1.5rem;
+      color: #22c55e;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .sidebar a {
+      color: #e2e8f0;
+      text-decoration: none;
+      display: block;
+      padding: 0.75rem 1rem;
+      margin: 0.5rem 0;
+      border-radius: 6px;
+    }
+
+    .sidebar a.active,
+    .sidebar a:hover {
+      background-color: #22c55e;
+      color: white;
+    }
+
+    .profile-section {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .profile-section h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .profile-card p {
+      font-size: 1.1rem;
+      margin: 1rem 0;
+    }
+
+    .btn-primary {
+      background-color: #22c55e;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      background-color: #16a34a;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: #0f172a;
+      color: #94a3b8;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>ResolveHub 360</h2>
+    <a href="agent-dashboard.html">Dashboard</a>
+    <a href="agent-profile.html" class="active">Profile</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+
+  <main class="container">
+    <section class="profile-section">
+      <h1>My Profile</h1>
+      <div class="profile-card">
+        <p><strong>Name:</strong> <span id="userName">Loading...</span></p>
+        <p><strong>Email:</strong> <span id="userEmail">Loading...</span></p>
+        <p><strong>Role:</strong> <span id="userRole">Loading...</span></p>
+        <button onclick="logout()" class="btn-primary">Logout</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2025 HelpDesk360. All rights reserved.
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const user = JSON.parse(localStorage.getItem("currentUser"));
+      console.log("USER LOADED:", user);
+
+      if (!user || user.role !== "agent") {
+        alert("Unauthorized access.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      document.getElementById("userName").innerText = user.name || "N/A";
+      document.getElementById("userEmail").innerText = user.email || "N/A";
+      document.getElementById("userRole").innerText = user.role || "N/A";
+    });
+
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("currentUser");
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>

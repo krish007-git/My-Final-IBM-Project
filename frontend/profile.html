@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Customer Profile - ResolveHub 360</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #0f172a;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem 1rem;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+    }
+
+    .sidebar h2 {
+      font-size: 1.5rem;
+      color: #22c55e;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .sidebar a {
+      color: #e2e8f0;
+      text-decoration: none;
+      margin: 1rem 0;
+      padding: 0.75rem 1rem;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .sidebar a:hover, .sidebar a.active {
+      background-color: #22c55e;
+      color: #ffffff;
+    }
+
+    main {
+      margin-left: 250px;
+      flex: 1;
+      padding: 2rem;
+    }
+
+    .profile-section {
+      max-width: 600px;
+      margin: 2rem auto;
+      background: #ffffff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .profile-section h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .profile-card p {
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn-primary {
+      margin-top: 1rem;
+      background-color: #22c55e;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-primary:hover {
+      background-color: #16a34a;
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <h2>ResolveHub 360</h2>
+    <a href="customer-dashboard.html">Dashboard</a>
+    <a href="tickets.html">Submit Ticket</a>
+    <a href="my-tickets.html">My Tickets</a>
+    <a href="profile.html" class="active">Profile</a>
+    <a href="javascript:void(0)" onclick="logout()">Logout</a>
+  </aside>
+
+  <main>
+    <section class="profile-section">
+      <h1>My Profile</h1>
+      <div class="profile-card">
+        <p><strong>Name:</strong> <span id="userName"></span></p>
+        <div id="editNameForm" style="display: none;">
+          <input type="text" id="editNameInput" placeholder="Enter new name" style="padding: 0.5rem; width: 100%; margin-bottom: 0.5rem;" />
+        </div>
+        <p><strong>Email:</strong> <span id="userEmail"></span></p>
+        <p><strong>Role:</strong> <span id="userRole"></span></p>
+
+        <div style="margin-top: 1rem;">
+          <button id="editBtn" class="btn-primary" onclick="enableEdit()">Edit</button>
+          <button id="saveBtn" class="btn-primary" onclick="saveName()" style="display: none;">Save</button>
+          <button onclick="logout()" class="btn-primary" style="background-color:#ef4444;">Logout</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    const token = localStorage.getItem("token");
+
+    if (!user || user.role !== "customer") {
+      window.location.href = "login.html";
+    } else {
+      document.getElementById("userName").innerText = user.name;
+      document.getElementById("userEmail").innerText = user.email;
+      document.getElementById("userRole").innerText = user.role;
+    }
+
+    function logout() {
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    }
+
+    function enableEdit() {
+      document.getElementById("editNameForm").style.display = "block";
+      document.getElementById("editBtn").style.display = "none";
+      document.getElementById("saveBtn").style.display = "inline-block";
+      document.getElementById("editNameInput").value = user.name;
+    }
+
+    async function saveName() {
+      const newName = document.getElementById("editNameInput").value.trim();
+      if (!newName) {
+        alert("Name cannot be empty.");
+        return;
+      }
+
+      try {
+        const res = await axios.put("http://localhost:5000/api/users/update-name", {
+          email: user.email,
+          name: newName
+        }, {
+          headers: { Authorization: "Bearer " + token }
+        });
+
+        const updatedUser = res.data.user;
+        localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+        document.getElementById("userName").innerText = updatedUser.name;
+        alert("Profile updated!");
+        document.getElementById("editNameForm").style.display = "none";
+        document.getElementById("editBtn").style.display = "inline-block";
+        document.getElementById("saveBtn").style.display = "none";
+      } catch (err) {
+        console.error(err);
+        alert("Failed to update name.");
+      }
+    }
+  </script>
+</body>
+</html>
